@@ -1,0 +1,328 @@
+[
+  {
+    "id": "q001",
+    "question": "랜덤 포레스트가 무엇인지 알려줘",
+    "category": "concept",
+    "rewritten_query": "랜덤 포레스트 개념 원리 정의",
+    "hyde": "랜덤 포레스트는 다수의 의사결정 트리를 구성하여 분류 및 회귀 문제에 적용하는 대표적인 앙상블 학습 기법입니다. 이 알고리즘은 부트스트랩 샘플링을 통해 각 트리에 대한 학습 데이터를 무작위로 추출하고, 각 트리의 노드 분할 시 전체 특성 중 일부만을 무작위로 선택하여 트리의 다양성과 독립성을 확보합니다. 이러한 두 가지 무작위성 주입은 개별 트리의 과적합을 효과적으로 방지하고 전체 모델의 예측 안정성과 정확도를 향상시킵니다. 최종 예측은 모든 개별 트리의 예측을 집계(분류의 경우 다수결, 회귀의 경우 평균)하여 도출됩니다.",
+    "query_generation": {
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "generated_at": "2026-10-05"
+    },
+    "relevant_chunks": [
+      {
+        "chunk_id": "c707859b-b4e3-46b3-81ae-8058b352c700_2",
+        "relevance": 2,
+        "filename": "머신러닝교과서ch3.pdf",
+        "page": 8,
+        "chunk_index": 2,
+        "note": "'랜덤 포레스트로 여러 결정트리 연결' 소제목: 정의와 알고리즘 1~4단계"
+      },
+      {
+        "chunk_id": "c707859b-b4e3-46b3-81ae-8058b352c700_3",
+        "relevance": 2,
+        "filename": "머신러닝교과서ch3.pdf",
+        "page": 13,
+        "chunk_index": 3,
+        "note": "청크 2와 오버랩으로 동일한 RF 설명·1~4단계 포함"
+      },
+      {
+        "chunk_id": "7fbb5bb0-9d35-415a-bacc-b36c520e9c97_2",
+        "relevance": 1,
+        "filename": "머신러닝교과서ch4.pdf",
+        "page": 6,
+        "chunk_index": 2,
+        "note": "4.6 랜덤 포레스트의 특성 중요도 (활용 사례, 정의 아님)"
+      },
+      {
+        "chunk_id": "7fbb5bb0-9d35-415a-bacc-b36c520e9c97_3",
+        "relevance": 1,
+        "filename": "머신러닝교과서ch4.pdf",
+        "page": 10,
+        "chunk_index": 3,
+        "note": "4.6절 오버랩 중복 (짧은 조각)"
+      }
+    ]
+  },
+  {
+    "id": "q002",
+    "question": "과대적합을 줄이는 방법은 뭐야?",
+    "category": "method",
+    "rewritten_query": "과대적합 줄이는 방법",
+    "hyde": "과대적합을 완화하기 위한 주요 전략에는 모델의 복잡성을 제어하고 일반화 능력을 향상시키는 방법들이 있습니다. 대표적으로는 **정규화(Regularization)** 기법이 있으며, 이는 모델의 가중치에 페널티를 부여(L1/L2 정규화)하거나 학습 시 뉴런의 일부를 무작위로 비활성화(드롭아웃)하여 특정 패턴에 과도하게 의존하는 것을 방지합니다. 또한, **조기 종료(Early Stopping)**를 통해 검증 세트의 성능이 더 이상 향상되지 않을 때 학습을 중단하여 불필요한 모델 업데이트를 방지할 수 있습니다. 데이터의 양을 늘리거나, 불필요한 특징을 제거하여 모델의 입력 차원을 줄이는 **특징 선택(Feature Selection)** 및 **차원 축소(Dimensionality Reduction)**도 효과적이며, 본질적으로 더 간단한 모델 구조를 사용하는 것도 과대적합을 줄이는 데 기여합니다.",
+    "query_generation": {
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "generated_at": "2026-10-05"
+    },
+    "relevant_chunks": [
+      {
+        "chunk_id": "c707859b-b4e3-46b3-81ae-8058b352c700_1",
+        "relevance": 2,
+        "filename": "머신러닝교과서ch3.pdf",
+        "page": 4,
+        "chunk_index": 1,
+        "note": "규제로 과대적합 피하기 (L2 규제, 편향-분산)"
+      },
+      {
+        "chunk_id": "7fbb5bb0-9d35-415a-bacc-b36c520e9c97_1",
+        "relevance": 2,
+        "filename": "머신러닝교과서ch4.pdf",
+        "page": 4,
+        "chunk_index": 1,
+        "note": "청크 2와 오버랩으로 과대적합 감소 방법 1~4 포함"
+      },
+      {
+        "chunk_id": "7fbb5bb0-9d35-415a-bacc-b36c520e9c97_2",
+        "relevance": 2,
+        "filename": "머신러닝교과서ch4.pdf",
+        "page": 6,
+        "chunk_index": 2,
+        "note": "과대적합을 줄이는 방법 1~4, L1 규제, 특성 선택/추출"
+      },
+      {
+        "chunk_id": "de161318-e2a7-412c-b13e-6c9591a5d4ff_1",
+        "relevance": 2,
+        "filename": "머신러닝교과서ch6.pdf",
+        "page": 5,
+        "chunk_index": 1,
+        "note": "분산이 높은 모델의 해결책: 데이터 추가, 복잡도 감소, 규제 증가"
+      },
+      {
+        "chunk_id": "c707859b-b4e3-46b3-81ae-8058b352c700_2",
+        "relevance": 1,
+        "filename": "머신러닝교과서ch3.pdf",
+        "page": 8,
+        "chunk_index": 2,
+        "note": "랜덤 포레스트가 과대적합 위험을 줄인다는 언급"
+      },
+      {
+        "chunk_id": "61ee1117-df01-48df-b3e4-ef5a356b31dd_0",
+        "relevance": 1,
+        "filename": "머신러닝교과서ch7.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "note": "배깅이 과대적합을 감소시킨다는 한 줄 언급"
+      }
+    ]
+  },
+  {
+    "id": "q003",
+    "question": "에이전트 엔지니어링에서 도구 호출은 어떻게 설계해?",
+    "category": "design",
+    "rewritten_query": "에이전트 엔지니어링 도구 호출 설계",
+    "hyde": "에이전트 엔지니어링에서 도구 호출은 에이전트가 외부 시스템과 상호작용하기 위한 명확하고 구조화된 인터페이스를 제공하도록 설계됩니다. 이는 각 도구의 기능, 필요한 입력 매개변수, 그리고 예상되는 출력에 대한 상세한 메타데이터 정의를 포함합니다. 일반적으로, 각 도구는 고유한 이름, 목적 설명, 그리고 JSON 스키마를 활용하여 정의된 인자(arguments) 집합을 가집니다. 이러한 명세는 대규모 언어 모델(LLM)이 주어진 태스크와 사용자 쿼리에 기반하여 적절한 도구를 식별하고 정확한 인자를 추출하여 호출을 구성하는 데 필수적입니다.",
+    "query_generation": {
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "generated_at": "2026-10-05"
+    },
+    "relevant_chunks": [
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_0",
+        "relevance": 2,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 1,
+        "chunk_index": 0,
+        "note": "4장 도구 개요: 도구 정의·모듈화, bind_tools, 도구 호출 메시지"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_1",
+        "relevance": 2,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 4,
+        "chunk_index": 1,
+        "note": "API 도구 설계 요점(신뢰성·보안성·우아한 실패), 플러그인, MCP"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_2",
+        "relevance": 2,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 6,
+        "chunk_index": 2,
+        "note": "MCP, 상태 유지 도구의 최소 권한·입력 검증·호출 로깅"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_3",
+        "relevance": 2,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 9,
+        "chunk_index": 3,
+        "note": "4.3 도구 호출 방식(auto/any/required/none), 유효 JSON 확인"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_4",
+        "relevance": 2,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 11,
+        "chunk_index": 4,
+        "note": "도구 호출 오류 교정: 스키마 검증, 재시도, 폴백, 로깅"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_6",
+        "relevance": 2,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 14,
+        "chunk_index": 6,
+        "note": "표준 도구 선택: 이름·설명·입출력 타입 명시 가이드"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_7",
+        "relevance": 2,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 16,
+        "chunk_index": 7,
+        "note": "5.3 도구 실행: 파라미터화, 컨텍스트 주입, 타임아웃·재시도"
+      },
+      {
+        "chunk_id": "8fbebb97-5e3e-47af-9967-0c8550a05cf1_5",
+        "relevance": 1,
+        "filename": "에이전트_엔지니어링1.pdf",
+        "page": 11,
+        "chunk_index": 5,
+        "note": "2.4 도구 개괄 (로컬/API/MCP, 모듈형 설계)"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_5",
+        "relevance": 1,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 13,
+        "chunk_index": 5,
+        "note": "5.2 도구 선택 비교표 (표준/시멘틱/계층)"
+      },
+      {
+        "chunk_id": "45aa07a2-5e3b-471d-872c-a5905ee86f0b_8",
+        "relevance": 1,
+        "filename": "에이전트_엔지니어링2.pdf",
+        "page": 19,
+        "chunk_index": 8,
+        "note": "5.4 도구 토폴로지 (호출 구성 패턴)"
+      }
+    ]
+  },
+  {
+    "id": "q004",
+    "question": "클로드 코드에서 슬래시 명령어는 어떻게 사용해?",
+    "category": "usage",
+    "rewritten_query": "클로드 코드 슬래시 명령어 사용법",
+    "hyde": "클로드에서 슬래시 명령어는 사용자 인터페이스 내에서 특정 기능이나 상호작용 방식을 호출하기 위해 사용되는 특별한 구문입니다. 이는 텍스트 입력창에 슬래시(` / `) 문자로 시작하여 특정 키워드를 입력함으로써 작동하며, 일반적인 대화 흐름을 방해하지 않고 다양한 도구 통합, 검색 기능 활성화 또는 특정 모드 전환과 같은 고급 작업을 수행할 수 있도록 돕습니다. 예를 들어, 특정 지식 베이스 검색을 지시하거나, 응답 스타일을 조정하는 데 활용될 수 있으며, 이는 AI 모델의 역량을 보다 효율적으로 제어하는 메커니즘을 제공합니다.",
+    "query_generation": {
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "generated_at": "2026-10-05"
+    },
+    "relevant_chunks": [
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_10",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 7,
+        "chunk_index": 10,
+        "note": "2.4 슬래시 명령어: /init, /model, /clear, /compact, /config"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_12",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 8,
+        "chunk_index": 12,
+        "note": "/config 이어짐, /output-style, /permissions, ?, #"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_13",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 8,
+        "chunk_index": 13,
+        "note": "/permissions, shift-tab, /ide, /add-dir, /status"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_14",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 9,
+        "chunk_index": 14,
+        "note": "/status, /memory, /rename, /context"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_15",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 9,
+        "chunk_index": 15,
+        "note": "/exit, /agents, /export, /login, /usage, /vim, /chrome, /terminal-setup 등"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_16",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 10,
+        "chunk_index": 16,
+        "note": "/terminal-setup, /extra-usage, /doctor, /rewind 시작"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_17",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 10,
+        "chunk_index": 17,
+        "note": "/rewind 상세, 2.5 커스텀 슬래시 커맨드 시작"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_18",
+        "relevance": 2,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 11,
+        "chunk_index": 18,
+        "note": "커스텀 슬래시 커맨드 (.claude/commands, 프런트매터)"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_9",
+        "relevance": 1,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 7,
+        "chunk_index": 9,
+        "note": "2.4 제목과 /init 한 개만 포함"
+      },
+      {
+        "chunk_id": "caec6371-48c0-4790-a664-2271e22d2cc9_19",
+        "relevance": 1,
+        "filename": "클로드코드_20260111.pdf",
+        "page": 11,
+        "chunk_index": 19,
+        "note": "/commit-push 커스텀 명령 생성 예시"
+      }
+    ]
+  },
+  {
+    "id": "q005",
+    "question": "서포트 벡터 머신의 마진에 대해 설명해줘",
+    "category": "concept",
+    "rewritten_query": "서포트 벡터 머신 마진 개념",
+    "hyde": "서포트 벡터 머신(SVM)에서 마진은 결정 경계(hyperplane)와 이 경계에 가장 가까이 위치한 훈련 데이터 포인트들, 즉 서포트 벡터들 사이의 거리를 의미합니다. SVM의 핵심 목표는 이 마진을 최대화하는 최적의 결정 경계를 찾는 것입니다. 최대 마진 초평면은 각 클래스의 서포트 벡터를 지나는 두 개의 평행한 경계선 사이의 폭을 최대로 만듭니다. 이 마진이 클수록 모델의 일반화 성능이 향상되고, 새로운 데이터에 대한 분류 오류에 더 강인해지는 경향이 있습니다.",
+    "query_generation": {
+      "provider": "gemini",
+      "model": "gemini-2.5-flash",
+      "generated_at": "2026-10-05"
+    },
+    "relevant_chunks": [
+      {
+        "chunk_id": "c707859b-b4e3-46b3-81ae-8058b352c700_1",
+        "relevance": 2,
+        "filename": "머신러닝교과서ch3.pdf",
+        "page": 4,
+        "chunk_index": 1,
+        "note": "SVM을 사용한 최대 마진 분류: 마진 최대화, 슬랙 변수, C로 마진 폭 제어"
+      },
+      {
+        "chunk_id": "c707859b-b4e3-46b3-81ae-8058b352c700_2",
+        "relevance": 1,
+        "filename": "머신러닝교과서ch3.pdf",
+        "page": 8,
+        "chunk_index": 2,
+        "note": "C로 마진 폭 제어 한 문장 + 로지스틱 회귀 vs SVM, 커널 SVM"
+      }
+    ]
+  }
+]

@@ -1,7 +1,5 @@
 # CLAUDE.md — RAG Chat 프로젝트 작업 인계 노트
 
-> 이 파일은 `main`용 축약본이다. 진행 중인 Retrieval 평가 작업의 상세 내용은 `retrieval-evaluation` 브랜치의 CLAUDE.md(6장)에 있다.
-
 새 세션에서 이전 작업을 이어가기 위한 메모. 코드 구조·기능 설명은 `README.md`에 있으니 여기서는 **환경 함정, 현재 상태, 합의된 작업 방식**만 적는다.
 (기록 시점: 2026-10-05. 모델 목록·무료 한도·커밋 해시는 바뀔 수 있으니 필요하면 다시 확인할 것.)
 
@@ -15,6 +13,8 @@
   - WSL 배포판 이름은 `Ubuntu`. `wsl -d Ubuntu ...` 로 실행.
   - 백엔드: `cd backend && source venv/bin/activate && uvicorn main:app --reload` (첫 기동은 `/mnt/c` 때문에 1분 안팎 걸림. `Application startup complete` 확인)
   - 프론트: WSL에서 `cd frontend && npm run dev` → http://localhost:5173. **Node/npm은 WSL에만 있다** (Windows·Git Bash에는 없음).
+  - WSL의 **비대화형 bash(Claude가 스크립트로 부를 때)에서는 `source ~/.nvm/nvm.sh`를 먼저 해야** node/npm/npx가 잡힌다.
+  - 프론트 빌드 검증: `npx tsc --noEmit`, `npx vite build --outDir /tmp/rag_dist_check --emptyOutDir` (저장소에 `dist/`가 생기지 않도록 임시 폴더로 출력).
   - Redis는 WSL에서 응답함(선택 기능). 꺼져 있으면 `sudo service redis-server start`.
 - 프로젝트 경로에 **한글·공백**이 있다 (`바탕 화면`). 따옴표 필수.
   - Claude가 PowerShell/Git Bash에서 WSL 명령을 부를 때 인용이 자주 깨진다 → **bash 스크립트 파일을 scratchpad에 쓰고 `wsl -d Ubuntu -e bash /mnt/c/.../script.sh`로 실행**하는 방식이 안정적. 스크립트 안에서 `cd /mnt/c/Users/jaho3/OneDrive/*/it/study/rebootcam/Quest2/RAG_Project-Quest2`처럼 글롭으로 한글 구간을 피했다.
@@ -39,29 +39,59 @@
 ## 4. DB 현황 (평가 기준 데이터)
 - 14개 문서, **187청크**: 머신러닝교과서 ch1~ch8, 에이전트_엔지니어링1·2, 클로드코드_20260111, DB모델링, LLM_ch1_2, rag시스템구축하기, RAG_환경설정.
 - 청크 크기 약 900자, 오버랩 200자 → 인접 청크에 같은 내용이 중복된다.
-- `document_chunks.chunk_id` = `{문서UUID}_{청크번호}` (UNIQUE). 문서를 지우고 다시 올리면 UUID가 바뀌어 **평가 정답(Ground Truth, `retrieval-evaluation` 브랜치의 `backend/eval/questions.json`)의 chunk_id가 깨진다** → `filename`+`chunk_index`로 재매핑.
+- `document_chunks.chunk_id` = `{문서UUID}_{청크번호}` (UNIQUE). 문서를 지우고 다시 올리면 UUID가 바뀌어 **평가 정답(Ground Truth)의 chunk_id가 깨진다** → `filename`+`chunk_index`로 재매핑.
 
 ## 5. Git
 - 원격: `jaho96/RAG_Project-Quest2`가 `jaho96/RAG-chat-with-evaluation`으로 **이동**됨. 이전 주소로도 push는 되지만 안내가 뜸. 필요하면 `git remote set-url origin https://github.com/jaho96/RAG-chat-with-evaluation.git` (사용자 확인 후).
-- 브랜치: `main`(서비스 코드, 모델 교체 커밋 `dafd968`까지) / `retrieval-evaluation`(검색 성능 평가 작업, 아직 `main`에 병합하지 않음 — 6장 참고).
+- 브랜치: `main`이 기준. 모델 교체와 Retrieval 평가 작업(아래 6장)은 모두 `main`에 병합됨. `retrieval-evaluation` 브랜치는 병합 후에도 지우지 않고 남겨 둠.
 - **WSL 안의 `git status`는 CRLF 차이로 가짜 변경이 잔뜩 보인다.** 실제 상태는 Windows git(PowerShell/Git Bash)으로 확인.
 - 커밋·푸시는 **사용자가 요청할 때만**. 커밋 메시지 끝에 Claude 공동 작성자 줄(시스템 지침)을 붙인다. `.env`·키·`backend/benchmark_result.json`은 커밋하지 않는다.
 
-## 6. 진행 중인 작업: Retrieval 평가 (브랜치 `retrieval-evaluation`)
-Vector-only vs Hybrid(Vector + Keyword + RRF) 검색 성능을 Recall@K / MRR / nDCG로 비교하는 작업. **관련 코드와 데이터(`backend/retrieval_eval.py`, `backend/retrieval_compare.py`, `backend/eval/`, `search()`의 `mode` 인자)는 `main`에 없고 `retrieval-evaluation` 브랜치에만 있다.**
+## 6. Retrieval 평가 작업 (구현 완료, `main`에 병합됨)
+목적: Vector-only vs Hybrid(Vector + Keyword + RRF)의 검색 성능을 같은 조건에서 비교. **구현은 끝났으므로 평가 코드·검색 알고리즘은 더 수정하지 않기로 했다.**
 
-이어서 하려면:
-1. `git checkout retrieval-evaluation`
-2. 그 브랜치의 `CLAUDE.md` 6장과 `backend/eval/README.md`를 먼저 읽는다.
-3. 평가 기준(relevance 정의, Top-10 ranking 하나를 K=5/10 cutoff로 평가, linear gain 등)은 사용자와 합의한 것이므로 임의로 바꾸지 않는다.
+파일
+- `backend/services/vector_store.py`: `search(..., mode="hybrid"|"vector", include_chunk_id=False)`. 기본 동작은 기존과 동일(회귀 확인함). `include_chunk_id`는 평가용이며 기본 API 응답에는 영향 없음.
+- `backend/retrieval_compare.py`: 같은 입력으로 두 방식의 Top-K를 나란히 출력(지표 없음). 저장된 쿼리가 있으면 LLM 미호출.
+- `backend/retrieval_eval.py`: Recall@5/10, MRR, nDCG@5/10 + 질문별 순위 변화 + macro average. **LLM 미호출**.
+- `backend/eval/questions.json`: 질문 5개(q001 랜덤 포레스트, q002 과대적합 감소, q003 에이전트 도구 호출 설계, q004 Claude Code 슬래시 명령어, q005 SVM 마진), 저장된 `rewritten_query`·`hyde`(gemini-2.5-flash, 2026-10-05), `relevant_chunks`(relevance 1/2).
+- `backend/eval/README.md`: 스키마·relevance 기준·평가 프로토콜 (**상세는 여기를 볼 것**).
+
+확정된 평가 기준 (임의로 바꾸지 말 것)
+- relevance=2: 청크 단독으로 직접 답변 가능 / 1: 관련은 있으나 단독으로는 부족 / 0: 용어만 언급(데이터에 기록 안 함).
+- 오버랩으로 같은 핵심 내용이 인접 두 청크에 있고 둘 중 무엇을 검색해도 답변에 충분하면 둘 다 relevance=2.
+- Recall@K·MRR은 relevance=2만 relevant. nDCG는 0/1/2 graded, **gain은 linear**(exponential 안 씀).
+- **검색은 질문/방식별 `search(top_k=10)` 한 번만** 실행하고 그 Top-10 ranking을 K=5, K=10 cutoff로 평가. `top_k=5`를 따로 돌리지 않는다. Hybrid가 내부적으로 `top_k×3` 후보를 쓰므로 `top_k`가 바뀌면 RRF 후보 집합이 달라지기 때문. 결과는 "서비스를 top_k=5로 실행한 결과"가 아님.
+- Vector 점수(cosine)와 RRF 점수는 서로 비교하지 않는다. 순위·포함 여부만.
+- 질문 5개뿐이므로 **통계적 일반화 금지**, 결과에 소규모 평가셋임을 명시.
+
+최종 결과(macro average, 5문항, 2026-10-05 재실행에서도 동일하게 재현됨):
+
+| 지표 | Vector-only | Hybrid + RRF | 차이(Hybrid − Vector) |
+|---|---|---|---|
+| Recall@5 | 0.536 | 0.607 | +0.071 |
+| Recall@10 | 0.743 | 0.764 | +0.021 |
+| MRR | 0.900 | 0.850 | -0.050 |
+| nDCG@5 | 0.631 | 0.643 | +0.012 |
+| nDCG@10 | 0.666 | 0.691 | +0.025 |
+
+질문별로는 Hybrid가 q001·q002에서 같거나 높고 q003·q004에서 낮으며 q005는 동일(q003·q004가 평균을 크게 좌우). 질문별 상세와 정답 청크 순위 변화는 `retrieval_eval.py` 출력에 있다.
+**결과 해석·발표 자료(PPT 결과표)는 사용자가 직접 구성할 예정**이며 Claude가 먼저 해석을 덧붙이지 않았다. 해석을 요청받으면 5문항 소규모 평가셋이라는 한계를 반드시 함께 적는다.
+
+**웹 UI는 만들지 않기로 했다.** 평가 대시보드에 "검색 품질" 탭을 만들어 봤지만(정적 데이터 방식) 사용하지 않기로 해서 커밋 전에 선택적으로 되돌렸다. Retrieval 평가는 오프라인 스크립트와 PPT 결과표로 보여줄 예정이므로 UI를 다시 제안·추가하지 않는다.
+
+실행: `cd backend && source venv/bin/activate && python retrieval_eval.py` (필요 시 `--ids q001 q004 --output eval/retrieval_eval_result.json`).
 
 ## 7. 사용자와의 작업 방식 (지금까지 합의된 것)
 - 한국어로 소통. 큰 변경은 **먼저 분석·계획을 보여주고 확인받은 뒤** 구현. "결과를 먼저 보여달라"는 요청이 많다.
 - 평가 작업에서는 **결과를 좋게 보이도록 가공하지 않는다**. 정답(Ground Truth)을 자동 확정하지 않고 후보와 근거를 보여준 뒤 사용자가 기준을 정한다.
 - 요청 범위 밖의 수정(검색 알고리즘 변경 등)을 하지 않는다. 기존 서비스 동작은 건드리지 않고 평가 경로에서만 분기한다.
 - 모르는 것·확인 못 한 것은 "확인 못 함"이라고 말한다 (예: Gemini 무료 한도, VS Code 링크 설정 효과).
+- 작업을 되돌릴 때는 `git reset --hard`처럼 다른 작업까지 날릴 수 있는 방식을 쓰지 않고, **대상 파일만 선택적으로** 되돌린다(`git checkout HEAD -- <파일>`, 새 파일은 삭제). 되돌린 뒤 `git status`/`git diff`로 확인한다.
+- "코드 수정하지 말고 실행만" 같은 지시는 문자 그대로 지킨다. 출력 형식이 다르면 코드를 고치지 말고 결과를 정리해서 보여준다.
+- 구현 후 "먼저 변경 내용을 알려달라"고 하면 커밋·푸시 없이 보고하고, 사용자가 화면/결과를 확인한 뒤 요청할 때 커밋한다.
 
 ## 8. 다음에 할 만한 일 (미정, 사용자 결정 필요)
-- 평가 결과 해석 및 발표 자료(PPT) 반영.
+- 발표 자료(PPT)의 Retrieval 평가 결과표 정리 (사용자 진행).
 - 평가셋 확대(질문 수·카테고리 다양화). Ground Truth 추가 시 `eval/README.md` 기준을 따를 것.
-- `vite.config.ts` `usePolling` 추가, 원격 URL 갱신, `main`에 평가 코드 병합 여부.
+- `vite.config.ts` `usePolling` 추가, 원격 URL 갱신(`git remote set-url`).
