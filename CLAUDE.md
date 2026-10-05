@@ -13,6 +13,8 @@
   - WSL 배포판 이름은 `Ubuntu`. `wsl -d Ubuntu ...` 로 실행.
   - 백엔드: `cd backend && source venv/bin/activate && uvicorn main:app --reload` (첫 기동은 `/mnt/c` 때문에 1분 안팎 걸림. `Application startup complete` 확인)
   - 프론트: WSL에서 `cd frontend && npm run dev` → http://localhost:5173. **Node/npm은 WSL에만 있다** (Windows·Git Bash에는 없음).
+  - WSL의 **비대화형 bash(Claude가 스크립트로 부를 때)에서는 `source ~/.nvm/nvm.sh`를 먼저 해야** node/npm/npx가 잡힌다.
+  - 프론트 빌드 검증: `npx tsc --noEmit`, `npx vite build --outDir /tmp/rag_dist_check --emptyOutDir` (저장소에 `dist/`가 생기지 않도록 임시 폴더로 출력).
   - Redis는 WSL에서 응답함(선택 기능). 꺼져 있으면 `sudo service redis-server start`.
 - 프로젝트 경로에 **한글·공백**이 있다 (`바탕 화면`). 따옴표 필수.
   - Claude가 PowerShell/Git Bash에서 WSL 명령을 부를 때 인용이 자주 깨진다 → **bash 스크립트 파일을 scratchpad에 쓰고 `wsl -d Ubuntu -e bash /mnt/c/.../script.sh`로 실행**하는 방식이 안정적. 스크립트 안에서 `cd /mnt/c/Users/jaho3/OneDrive/*/it/study/rebootcam/Quest2/RAG_Project-Quest2`처럼 글롭으로 한글 구간을 피했다.
@@ -41,12 +43,12 @@
 
 ## 5. Git
 - 원격: `jaho96/RAG_Project-Quest2`가 `jaho96/RAG-chat-with-evaluation`으로 **이동**됨. 이전 주소로도 push는 되지만 안내가 뜸. 필요하면 `git remote set-url origin https://github.com/jaho96/RAG-chat-with-evaluation.git` (사용자 확인 후).
-- 브랜치: `main`(서비스 코드, 모델 교체 커밋 `dafd968`까지) / `retrieval-evaluation`(평가 작업 — 아래 6장, 최신 `6d90c1b`). 평가 코드는 main에 합치지 않았다.
+- 브랜치: `main`이 기준. 모델 교체와 Retrieval 평가 작업(아래 6장)은 모두 `main`에 병합됨. `retrieval-evaluation` 브랜치는 병합 후에도 지우지 않고 남겨 둠.
 - **WSL 안의 `git status`는 CRLF 차이로 가짜 변경이 잔뜩 보인다.** 실제 상태는 Windows git(PowerShell/Git Bash)으로 확인.
 - 커밋·푸시는 **사용자가 요청할 때만**. 커밋 메시지 끝에 Claude 공동 작성자 줄(시스템 지침)을 붙인다. `.env`·키·`backend/benchmark_result.json`은 커밋하지 않는다.
 
-## 6. Retrieval 평가 작업 (브랜치 `retrieval-evaluation`)
-목적: Vector-only vs Hybrid(Vector + Keyword + RRF)의 검색 성능을 같은 조건에서 비교.
+## 6. Retrieval 평가 작업 (구현 완료, `main`에 병합됨)
+목적: Vector-only vs Hybrid(Vector + Keyword + RRF)의 검색 성능을 같은 조건에서 비교. **구현은 끝났으므로 평가 코드·검색 알고리즘은 더 수정하지 않기로 했다.**
 
 파일
 - `backend/services/vector_store.py`: `search(..., mode="hybrid"|"vector", include_chunk_id=False)`. 기본 동작은 기존과 동일(회귀 확인함). `include_chunk_id`는 평가용이며 기본 API 응답에는 영향 없음.
@@ -63,8 +65,20 @@
 - Vector 점수(cosine)와 RRF 점수는 서로 비교하지 않는다. 순위·포함 여부만.
 - 질문 5개뿐이므로 **통계적 일반화 금지**, 결과에 소규모 평가셋임을 명시.
 
-마지막 결과(macro average, 5문항): Vector-only R@5 0.536 / R@10 0.743 / MRR 0.900 / nDCG@5 0.631 / nDCG@10 0.666 · Hybrid R@5 0.607 / R@10 0.764 / MRR 0.850 / nDCG@5 0.643 / nDCG@10 0.691.
-질문별로는 Hybrid가 q001·q002에서 같거나 높고 q003·q004에서 낮으며 q005는 동일(q003·q004가 평균을 크게 좌우). **결과 해석과 PPT 반영은 아직 하지 않았다** — 사용자가 먼저 결과를 보고 결정하기로 함.
+최종 결과(macro average, 5문항, 2026-10-05 재실행에서도 동일하게 재현됨):
+
+| 지표 | Vector-only | Hybrid + RRF | 차이(Hybrid − Vector) |
+|---|---|---|---|
+| Recall@5 | 0.536 | 0.607 | +0.071 |
+| Recall@10 | 0.743 | 0.764 | +0.021 |
+| MRR | 0.900 | 0.850 | -0.050 |
+| nDCG@5 | 0.631 | 0.643 | +0.012 |
+| nDCG@10 | 0.666 | 0.691 | +0.025 |
+
+질문별로는 Hybrid가 q001·q002에서 같거나 높고 q003·q004에서 낮으며 q005는 동일(q003·q004가 평균을 크게 좌우). 질문별 상세와 정답 청크 순위 변화는 `retrieval_eval.py` 출력에 있다.
+**결과 해석·발표 자료(PPT 결과표)는 사용자가 직접 구성할 예정**이며 Claude가 먼저 해석을 덧붙이지 않았다. 해석을 요청받으면 5문항 소규모 평가셋이라는 한계를 반드시 함께 적는다.
+
+**웹 UI는 만들지 않기로 했다.** 평가 대시보드에 "검색 품질" 탭을 만들어 봤지만(정적 데이터 방식) 사용하지 않기로 해서 커밋 전에 선택적으로 되돌렸다. Retrieval 평가는 오프라인 스크립트와 PPT 결과표로 보여줄 예정이므로 UI를 다시 제안·추가하지 않는다.
 
 실행: `cd backend && source venv/bin/activate && python retrieval_eval.py` (필요 시 `--ids q001 q004 --output eval/retrieval_eval_result.json`).
 
@@ -73,8 +87,11 @@
 - 평가 작업에서는 **결과를 좋게 보이도록 가공하지 않는다**. 정답(Ground Truth)을 자동 확정하지 않고 후보와 근거를 보여준 뒤 사용자가 기준을 정한다.
 - 요청 범위 밖의 수정(검색 알고리즘 변경 등)을 하지 않는다. 기존 서비스 동작은 건드리지 않고 평가 경로에서만 분기한다.
 - 모르는 것·확인 못 한 것은 "확인 못 함"이라고 말한다 (예: Gemini 무료 한도, VS Code 링크 설정 효과).
+- 작업을 되돌릴 때는 `git reset --hard`처럼 다른 작업까지 날릴 수 있는 방식을 쓰지 않고, **대상 파일만 선택적으로** 되돌린다(`git checkout HEAD -- <파일>`, 새 파일은 삭제). 되돌린 뒤 `git status`/`git diff`로 확인한다.
+- "코드 수정하지 말고 실행만" 같은 지시는 문자 그대로 지킨다. 출력 형식이 다르면 코드를 고치지 말고 결과를 정리해서 보여준다.
+- 구현 후 "먼저 변경 내용을 알려달라"고 하면 커밋·푸시 없이 보고하고, 사용자가 화면/결과를 확인한 뒤 요청할 때 커밋한다.
 
 ## 8. 다음에 할 만한 일 (미정, 사용자 결정 필요)
-- 평가 결과 해석 및 발표 자료(PPT) 반영.
+- 발표 자료(PPT)의 Retrieval 평가 결과표 정리 (사용자 진행).
 - 평가셋 확대(질문 수·카테고리 다양화). Ground Truth 추가 시 `eval/README.md` 기준을 따를 것.
-- `vite.config.ts` `usePolling` 추가, 원격 URL 갱신, `main`에 평가 코드 병합 여부.
+- `vite.config.ts` `usePolling` 추가, 원격 URL 갱신(`git remote set-url`).
