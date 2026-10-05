@@ -1,9 +1,13 @@
 """
 검색 방식 비교: Vector-only vs Hybrid(Vector + Keyword + RRF)
 
-같은 질문에 대해 prepare_queries()와 임베딩을 한 번만 수행하고,
+같은 질문에 대해 쿼리 준비와 임베딩을 한 번만 수행하고,
 완전히 동일한 query embedding / top_k 로 두 방식을 실행해 청크 ID와 순위를 나란히 출력한다.
 (Recall@K, MRR, nDCG 계산은 아직 포함하지 않음)
+
+재현성: 질문에 rewritten_query 와 hyde 가 저장되어 있으면 LLM을 호출하지 않고 그 값을 그대로 쓴다
+(HyDE 텍스트는 동일한 임베딩 모델로 다시 임베딩). 둘 다 없으면 prepare_queries()로 생성한다.
+둘 중 하나만 있으면 비결정적 혼합을 막기 위해 오류로 처리한다.
 
 사용법:
   cd backend
@@ -35,9 +39,23 @@ def load_questions(path: Path, ids: list[str] | None) -> list[dict]:
     return questions
 
 
-def compare_one(question: str, top_k: int, provider: str, model: str) -> dict:
+def resolve_queries(q: dict, provider: str, model: str) -> tuple[str, str, str]:
+    """(keyword_query, hyde_text, source) 반환. 저장된 값이 있으면 LLM 재호출 없이 그대로 사용한다."""
+    saved_kw = (q.get("rewritten_query") or "").strip()
+    saved_hyde = (q.get("hyde") or "").strip()
+
+    if saved_kw and saved_hyde:
+        return saved_kw, saved_hyde, "saved"
+    if saved_kw or saved_hyde:
+        raise ValueError(f"[{q['id']}] rewritten_query 와 hyde 중 하나만 저장되어 있습니다. 둘 다 채우거나 둘 다 비워주세요.")
+
+    keyword_query, hyde_text = prepare_queries(q["question"], provider, model)
+    return keyword_query, hyde_text, "generated"
+
+
+def compare_one(q: dict, top_k: int, provider: str, model: str) -> dict:
     """질문 1개에 대해 query 준비·임베딩은 1회만 수행하고, 두 방식을 같은 입력으로 검색한다."""
-    keyword_query, hyde_text = prepare_queries(question, provider, model)
+    keyword_query, hyde_text, source = resolve_queries(q, provider, model)
     embedding = embed_query(hyde_text)
 
     vector = search(embedding, query_text=keyword_query, top_k=top_k,
@@ -50,6 +68,7 @@ def compare_one(question: str, top_k: int, provider: str, model: str) -> dict:
                 for i, r in enumerate(results, 1)]
 
     return {
+        "query_source": source,
         "keyword_query": keyword_query,
         "hyde_text": hyde_text,
         "vector": pack(vector),
@@ -63,6 +82,7 @@ def print_comparison(q: dict, r: dict, top_k: int):
 
     print("=" * 100)
     print(f"[{q['id']}] {q['question']}")
+    print(f"  query_source  : {'저장된 값 사용 (LLM 미호출)' if r['query_source'] == 'saved' else 'LLM 생성'}")
     print(f"  keyword_query : {r['keyword_query']}")
     print(f"  hyde_text     : {r['hyde_text'][:80]}{'…' if len(r['hyde_text']) > 80 else ''}")
     print(f"  (* = 반대편 Top-{top_k}에도 포함된 청크)")
@@ -88,8 +108,8 @@ def main():
     parser.add_argument("--questions", type=Path, default=DEFAULT_QUESTIONS, help="질문 JSON 파일")
     parser.add_argument("--ids", nargs="*", help="이 id의 질문만 실행 (생략 시 전체)")
     parser.add_argument("--top-k", type=int, default=7, help="검색 결과 수 (서비스 기본값: 7)")
-    parser.add_argument("--provider", default="gemini", help="쿼리 재작성·HyDE에 쓸 LLM 제공사")
-    parser.add_argument("--model", default="gemini-2.5-flash", help="쿼리 재작성·HyDE에 쓸 LLM 모델")
+    parser.add_argument("--provider", default="gemini", help="저장된 값이 없을 때만 쿼리 재작성·HyDE 생성에 쓸 LLM 제공사")
+    parser.add_argument("--model", default="gemini-2.5-flash", help="저장된 값이 없을 때만 쿼리 재작성·HyDE 생성에 쓸 LLM 모델")
     parser.add_argument("--output", type=Path, help="결과를 JSON으로 저장할 경로 (선택)")
     args = parser.parse_args()
 
@@ -98,12 +118,13 @@ def main():
         print("실행할 질문이 없습니다.")
         return
 
-    print(f"질문 {len(questions)}개 | top_k={args.top_k} | 쿼리 LLM: {args.provider}/{args.model}")
+    print(f"질문 {len(questions)}개 | top_k={args.top_k} | "
+          f"쿼리 LLM(저장된 값이 없는 질문에만 사용): {args.provider}/{args.model}")
 
     results = []
     for q in questions:
         try:
-            r = compare_one(q["question"], args.top_k, args.provider, args.model)
+            r = compare_one(q, args.top_k, args.provider, args.model)
         except Exception as e:
             print(f"[{q['id']}] 실패: {e}")
             continue
