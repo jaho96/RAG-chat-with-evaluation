@@ -24,8 +24,8 @@ class HistoryMessage(BaseModel):
 
 class ChatRequest(BaseModel):
     question: str
-    provider: str = "groq"
-    model: str = "llama-3.3-70b-versatile"
+    provider: str = "gemini"
+    model: str = "gemini-2.5-flash"
     top_k: int = 7
     history: list[HistoryMessage] = []
 

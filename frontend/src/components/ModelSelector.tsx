@@ -93,22 +93,24 @@ export default function ModelSelector({ selected, onChange }: Props) {
             ) : null
           )}
 
-          {/* 구분선 */}
-          <div className="mx-3 my-1.5 border-t border-gray-100" />
-
-          {/* 유료 섹션 */}
-          <div className="px-3 pt-1 pb-1">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">유료</p>
-          </div>
-          {PAID_GROUPS.map((group) =>
-            groupedModels[group] ? (
-              <div key={group}>
-                <p className="px-3 pt-1 text-xs text-gray-400 font-medium">{group}</p>
-                {groupedModels[group].map((m) => (
-                  <ModelItem key={`${m.provider}::${m.model}`} m={m} selected={selected} onChange={(opt) => { onChange(opt); setOpen(false); }} />
-                ))}
+          {/* 유료 섹션 — MODEL_OPTIONS에 유료 모델이 있을 때만 표시 */}
+          {PAID_GROUPS.some((g) => groupedModels[g]) && (
+            <>
+              <div className="mx-3 my-1.5 border-t border-gray-100" />
+              <div className="px-3 pt-1 pb-1">
+                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">유료</p>
               </div>
-            ) : null
+              {PAID_GROUPS.map((group) =>
+                groupedModels[group] ? (
+                  <div key={group}>
+                    <p className="px-3 pt-1 text-xs text-gray-400 font-medium">{group}</p>
+                    {groupedModels[group].map((m) => (
+                      <ModelItem key={`${m.provider}::${m.model}`} m={m} selected={selected} onChange={(opt) => { onChange(opt); setOpen(false); }} />
+                    ))}
+                  </div>
+                ) : null
+              )}
+            </>
           )}
           <div className="h-2" />
         </div>,

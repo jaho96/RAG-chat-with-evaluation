@@ -8,7 +8,7 @@
   cd backend
   source venv/bin/activate
   python benchmark.py
-  python benchmark.py --questions 10 --top-k 5 --provider groq --model llama-3.3-70b-versatile
+  python benchmark.py --questions 10 --top-k 5 --provider gemini --model gemini-2.5-flash
 """
 
 import argparse
@@ -82,8 +82,8 @@ def main():
     parser = argparse.ArgumentParser(description="RAG 검색 성능 벤치마크")
     parser.add_argument("--questions", type=int, default=5,  help="테스트 질문 수 (기본: 5)")
     parser.add_argument("--top-k",    type=int, default=7,   help="검색 결과 수 (기본: 7)")
-    parser.add_argument("--provider", default="groq",        help="LLM 제공사")
-    parser.add_argument("--model",    default="llama-3.3-70b-versatile", help="LLM 모델")
+    parser.add_argument("--provider", default="gemini",      help="LLM 제공사")
+    parser.add_argument("--model",    default="gemini-2.5-flash", help="LLM 모델")
     args = parser.parse_args()
 
     print(f"\n{'='*60}")

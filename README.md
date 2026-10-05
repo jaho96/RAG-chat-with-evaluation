@@ -59,15 +59,12 @@
 
 | 제공사 | 모델 | 무료 여부 |
 |--------|------|:---------:|
-| Groq | Llama 3.3 70B Versatile | ✅ 무료 |
-| Groq | Llama 3.1 8B Instant | ✅ 무료 |
-| Google Gemini | Gemini 2.0 Flash | ✅ 무료 |
-| Google Gemini | Gemini 1.5 Flash | ✅ 무료 |
-| Google Gemini | Gemini 1.5 Pro | ✅ 무료 |
-| OpenAI | GPT-4o | 💳 유료 |
-| OpenAI | GPT-4o Mini | 💳 유료 |
-| Anthropic | Claude Sonnet 4.6 | 💳 유료 |
-| Anthropic | Claude Haiku 4.5 | 💳 유료 |
+| Google Gemini | Gemini 2.5 Flash / 2.5 Flash-Lite / 3.5 Flash / 3.8 Flash | ✅ 무료 |
+| Groq | GPT-OSS 120B / GPT-OSS 20B / Qwen3.8 27B | ✅ 무료 |
+| OpenAI | GPT-4o | 💳 유료 (UI 숨김) |
+| OpenAI | GPT-4o Mini | 💳 유료 (UI 숨김) |
+| Anthropic | Claude Sonnet 4.6 | 💳 유료 (UI 숨김) |
+| Anthropic | Claude Haiku 4.5 | 💳 유료 (UI 숨김) |
 
 ---
 
@@ -107,7 +104,7 @@
 | 기본 검색 | 질문 원문 → 임베딩 → 벡터 검색 |
 | 향상 검색 | 쿼리 재작성 + HyDE 병렬 생성 → 임베딩 → 벡터 + 키워드 하이브리드 검색 (RRF) |
 
-### 결과 (문서 187청크, top_k=7, Groq Llama 3.3 70B)
+### 결과 (문서 187청크, top_k=7, Groq Llama 3.3 70B — 측정 당시 모델)
 
 | 지표 | 기본 검색 | 향상 검색 | 개선폭 |
 |------|:---------:|:---------:|:------:|

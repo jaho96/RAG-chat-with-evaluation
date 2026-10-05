@@ -13,16 +13,16 @@ router = APIRouter(prefix="/quiz", tags=["quiz"])
 class GenerateRequest(BaseModel):
     doc_ids: list[str]      # 빈 리스트면 전체 문서 사용
     count: int = 10
-    provider: str = "groq"
-    model: str = "llama-3.3-70b-versatile"
+    provider: str = "gemini"
+    model: str = "gemini-2.5-flash"
 
 
 class GradeRequest(BaseModel):
     question: str
     correct_answer: str
     user_answer: str
-    provider: str = "groq"
-    model: str = "llama-3.3-70b-versatile"
+    provider: str = "gemini"
+    model: str = "gemini-2.5-flash"
 
 
 def _collect_stream(llm, system_prompt: str, user_message: str) -> str:
