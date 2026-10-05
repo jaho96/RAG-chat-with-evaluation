@@ -64,8 +64,39 @@ def add_chunks(doc_id: str, filename: str, file_type: str, uploaded_at: str,
         )
 
 
-def search(query_embedding: list[float], query_text: str = "", top_k: int = 5) -> list[dict]:
-    """Hybrid Search: 벡터 유사도 + 키워드 검색 결합 (RRF 방식)"""
+def _format_result(row: dict, score: float, include_chunk_id: bool) -> dict:
+    """검색 결과 1건을 응답 형식으로 변환. chunk_id는 평가용 옵션으로만 포함한다."""
+    item = {
+        "text": row["content"],
+        "metadata": {
+            "doc_id":       row["doc_id"],
+            "filename":     row["filename"],
+            "file_type":    row["file_type"],
+            "uploaded_at":  row["uploaded_at"],
+            "page":         row["page"],
+            "chunk_index":  row["chunk_index"],
+            "total_chunks": row["total_chunks"],
+        },
+        "score": score,
+    }
+    if include_chunk_id:
+        item["chunk_id"] = row["chunk_id"]
+    return item
+
+
+def search(query_embedding: list[float], query_text: str = "", top_k: int = 5,
+           mode: str = "hybrid", include_chunk_id: bool = False) -> list[dict]:
+    """
+    문서 검색.
+
+    mode="hybrid" (기본): 벡터 유사도 + 키워드 검색 결합 (RRF 방식)
+    mode="vector"       : 벡터 검색만 수행, 코사인 유사도 순으로 top_k 반환 (평가용)
+
+    include_chunk_id=True 이면 각 결과에 "chunk_id"를 추가한다 (평가용, 기본 응답에는 영향 없음).
+    """
+    if mode not in ("hybrid", "vector"):
+        raise ValueError(f"지원하지 않는 검색 mode: {mode!r} (hybrid | vector)")
+
     vec = np.array(query_embedding, dtype=np.float32)
     fetch = top_k * 3  # 각 방법에서 더 많이 뽑아서 합산
 
@@ -85,7 +116,7 @@ def search(query_embedding: list[float], query_text: str = "", top_k: int = 5) -
 
         # ── 키워드 검색 (tsvector) ─────────────────────────────────
         keyword_rows = {}
-        words = _build_keyword_query(query_text) if query_text.strip() else ""
+        words = _build_keyword_query(query_text) if mode == "hybrid" and query_text.strip() else ""
         if words:
             try:
                 cur.execute("""
@@ -101,6 +132,11 @@ def search(query_embedding: list[float], query_text: str = "", top_k: int = 5) -
                 keyword_rows = {r["chunk_id"]: (dict(r), i + 1) for i, r in enumerate(cur.fetchall())}
             except Exception:
                 pass  # 키워드 파싱 실패 시 벡터만 사용
+
+    # ── Vector-only: 코사인 유사도 순(이미 정렬됨)으로 top_k 반환 ──
+    if mode == "vector":
+        ranked = sorted(vector_rows.values(), key=lambda x: x[1])
+        return [_format_result(r, round(r["score"], 3), include_chunk_id) for r, _ in ranked[:top_k]]
 
     # ── RRF (Reciprocal Rank Fusion) 점수 합산 ─────────────────────
     k = 60  # RRF 상수
@@ -121,21 +157,9 @@ def search(query_embedding: list[float], query_text: str = "", top_k: int = 5) -
 
     scored.sort(key=lambda x: x[0], reverse=True)
 
+    # RRF 점수를 0~1로 정규화 — 벡터+키워드 양쪽 1위면 1.0
     return [
-        {
-            "text": r["content"],
-            "metadata": {
-                "doc_id":       r["doc_id"],
-                "filename":     r["filename"],
-                "file_type":    r["file_type"],
-                "uploaded_at":  r["uploaded_at"],
-                "page":         r["page"],
-                "chunk_index":  r["chunk_index"],
-                "total_chunks": r["total_chunks"],
-            },
-            # RRF 점수를 0~1로 정규화 — 벡터+키워드 양쪽 1위면 1.0
-            "score": round(min(rrf / max_rrf, 1.0), 3),
-        }
+        _format_result(r, round(min(rrf / max_rrf, 1.0), 3), include_chunk_id)
         for rrf, r in scored[:top_k]
     ]
 
